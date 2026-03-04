@@ -1,43 +1,46 @@
 "use client";
 
-import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClient();
 
   useEffect(() => {
-    async function fetchCustomers() {
-      const { data, error } = await supabase
-        .from("customers")
-        .select("*")
-        .limit(5);
-      if (error) {
-        setError(error.message);
-        console.error(error);
-      } else {
-        setCustomers(data || []);
-      }
-    }
-    fetchCustomers();
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+    getSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      },
+    );
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
   return (
-    <main style={{ padding: "2rem", fontFamily: "monospace" }}>
-      <h1>Ganesh Dairy – Test Connection</h1>
-
-      {error && (
-        <div style={{ color: "red", margin: "1rem 0" }}>ERROR: {error}</div>
+    <div className="p-8">
+      {user ? (
+        <div>
+          <p>Logged in as: {user.email}</p>
+          <p>Role: {user.user_metadata?.role || "unknown"}</p>
+          <Button onClick={handleLogout}>Logout</Button>
+        </div>
+      ) : (
+        <p>Not logged in</p>
       )}
-
-      <h2>Customers ({customers.length})</h2>
-      <pre>{JSON.stringify(customers, null, 2)}</pre>
-    </main>
+    </div>
   );
 }
