@@ -97,8 +97,6 @@ export function AuthForm() {
     } else {
       setMessage("Signed in successfully!");
       router.replace("/");
-      // Optional: redirect or update UI
-      console.log("User:", data.user);
     }
   };
 
