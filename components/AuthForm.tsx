@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { AlertCircle, Milk, LogIn, UserPlus } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useRouter } from "next/navigation";
 
 const supabase = createClient();
 
@@ -26,6 +27,8 @@ export function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -70,7 +73,7 @@ export function AuthForm() {
         email,
         password,
         options: {
-          data: { role: "customer" }, // default role – admin created manually in dashboard
+          data: { role: "customer" }, // default -role admin created manually
         },
       });
     } else {
@@ -93,6 +96,7 @@ export function AuthForm() {
       );
     } else {
       setMessage("Signed in successfully!");
+      router.replace("/");
       // Optional: redirect or update UI
       console.log("User:", data.user);
     }
@@ -179,7 +183,7 @@ export function AuthForm() {
         </form>
       </CardContent>
 
-      <CardFooter className="flex flex-col gap-4 border-t border-amber-800/20 pt-6">
+      <CardFooter className="flex flex-col gap-4 border-t border-amber-800/20 pt-4">
         <Button
           variant="ghost"
           onClick={() => setIsSignUp(!isSignUp)}
@@ -188,7 +192,7 @@ export function AuthForm() {
             ? "Already have an account? Sign in"
             : "Don't have an account? Sign up"}
         </Button>
-        <div className="relative my-6">
+        <div className="relative my-2">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-amber-300" />
           </div>
@@ -204,7 +208,7 @@ export function AuthForm() {
           variant="outline"
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full h-14 text-base font-medium border-amber-400 hover:bg-amber-50 hover:text-emerald-800 flex items-center justify-center gap-3 shadow-sm">
+          className="w-full h-10 text-base font-medium border-amber-400 hover:bg-amber-50 hover:text-emerald-800 flex items-center justify-center gap-3 shadow-sm">
           <svg className="h-6 w-6" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
