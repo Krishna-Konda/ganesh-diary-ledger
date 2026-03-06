@@ -38,7 +38,7 @@ export default function Home() {
       {user ? (
         <div>
           <p>Logged in as: {user.email}</p>
-          <p>Role: {user.user_metadata?.role || "unknown"}</p>
+          <p>Role:{user.user_metadata?.role || "Unkonow"}</p>
           <Button onClick={handleLogout}>Logout</Button>
         </div>
       ) : (
