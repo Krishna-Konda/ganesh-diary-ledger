@@ -94,6 +94,18 @@ export function AuthForm() {
       setMessage(
         "Sign up successful! Check your email to confirm (if required).",
       );
+
+      //create and add the user in the database
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .insert({ id: data.user.id, email: data.user.email, role: "customer" });
+
+        if (profileError) {
+          console.log("Profilesetup error", profileError);
+          setError("Account Created but profile setup err contact admin");
+        }
+      }
     } else {
       setMessage("Signed in successfully!");
       router.replace("/");
@@ -145,6 +157,7 @@ export function AuthForm() {
               required
             />
           </div>
+
 
           {error && (
             <Alert variant="destructive" className="bg-red-50 border-red-400">
