@@ -36,7 +36,7 @@ export async function createProduct(
   return data;
 }
 
-export async function upadateProduct(
+export async function updateProduct(
   productid: string,
   updates: {
     name?: string;

@@ -1,6 +1,7 @@
 // components/AuthForm.tsx
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/card";
 import { AlertCircle, Milk, LogIn, UserPlus } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/actions/auth";
 
 const supabase = createClient();
 
@@ -98,13 +99,11 @@ export function AuthForm() {
 
       //create and add the user in the database
       if (data.user) {
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .insert({
-            id: data.user.id,
-            email: data.user.email,
-            role: "customer",
-          });
+        const { error: profileError } = await supabase.from("profiles").insert({
+          id: data.user.id,
+          email: data.user.email,
+          role: "customer",
+        });
 
         if (profileError) {
           console.log("Profilesetup error", profileError);
@@ -113,7 +112,18 @@ export function AuthForm() {
       }
     } else {
       setMessage("Signed in successfully!");
-      router.replace("/");
+
+      // Get user with role and redirect accordingly
+      const user = await getCurrentUser();
+      if (user) {
+        if (user.role === "admin") {
+          router.replace("/admin/dashboard");
+        } else {
+          router.replace("/dashboard");
+        }
+      } else {
+        router.replace("/");
+      }
     }
   };
 

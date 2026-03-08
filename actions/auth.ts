@@ -1,9 +1,10 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
 export async function getCurrentUser() {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
 
   const {
     data: { user },
@@ -11,11 +12,32 @@ export async function getCurrentUser() {
 
   if (!user) return null;
 
-  const {
-    data: { profile },
-  } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  // Use service role to bypass RLS for profile fetching
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    },
+  );
 
-  return { id: user.id, email: user.email, ...profile };
+  const { data, error } = await supabaseAdmin
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.error("Profile fetch error:", error);
+    return null;
+  }
+
+  if (!data) return null;
+
+  return { id: user.id, email: user.email, ...data };
 }
 
 export async function getUserRole() {
@@ -28,7 +50,31 @@ export async function checkRoleAdmin() {
   return role === "admin";
 }
 
-export async function signOut() {
-  const supabase = await createClient();
-  return supabase.auth.signOut();
+export async function checkIsAdmin() {
+  const user = await getCurrentUser();
+  return user?.role === "admin";
+}
+
+export async function setUserRole(userId: string, role: "admin" | "customer") {
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    },
+  );
+
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .upsert({ id: userId, role });
+
+  if (error) {
+    console.error("Error setting user role:", error);
+    return false;
+  }
+
+  return true;
 }
