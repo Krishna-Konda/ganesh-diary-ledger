@@ -27,6 +27,7 @@ export function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [role, setrole] = useState<"admin" | "customer">("customer");
 
   const router = useRouter();
 
@@ -99,7 +100,11 @@ export function AuthForm() {
       if (data.user) {
         const { error: profileError } = await supabase
           .from("profiles")
-          .insert({ id: data.user.id, email: data.user.email, role: "customer" });
+          .insert({
+            id: data.user.id,
+            email: data.user.email,
+            role: "customer",
+          });
 
         if (profileError) {
           console.log("Profilesetup error", profileError);
@@ -157,7 +162,6 @@ export function AuthForm() {
               required
             />
           </div>
-
 
           {error && (
             <Alert variant="destructive" className="bg-red-50 border-red-400">
