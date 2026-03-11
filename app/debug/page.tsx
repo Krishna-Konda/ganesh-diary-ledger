@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getCurrentUser, setUserRole } from "@/actions/auth";
+import { getCurrentUser, setUserRole } from "@/actions/authActions";
 import { Button } from "@/components/ui/button";
 
 export default function DebugPage() {

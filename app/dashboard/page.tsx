@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getCurrentUser } from "@/actions/auth";
+import { getCurrentUser } from "@/actions/authActions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Milk, LogOut } from "lucide-react";
@@ -56,8 +56,7 @@ export default function DashboardPage() {
               onClick={handleSignOut}
               variant="outline"
               size="sm"
-              className="text-amber-900 border-amber-200 hover:bg-amber-100"
-            >
+              className="text-amber-900 border-amber-200 hover:bg-amber-100">
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>

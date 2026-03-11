@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/card";
 import { AlertCircle, Milk, LogIn, UserPlus } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { getCurrentUser } from "@/actions/auth";
+import { getCurrentUser } from "@/actions/authActions";
 
 const supabase = createClient();
 
