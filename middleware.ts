@@ -42,8 +42,11 @@ export async function middleware(request: NextRequest) {
         .select("role")
         .eq("id", user.id)
         .single();
+
       const dest =
-        profile?.role === "admin" ? "/admin/dashboard" : "/customer/dashboard";
+        user.app_metadata?.role === "admin"
+          ? "/admin/dashboard"
+          : "/customer/dashboard";
       return NextResponse.redirect(new URL(dest, request.url));
     }
     return response;
@@ -61,7 +64,7 @@ export async function middleware(request: NextRequest) {
     .eq("id", user.id)
     .single();
 
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = user.app_metadata?.role === "admin";
   const isApproved = profile?.is_approved === true;
 
   // ── Customer not approved ───────────────────────────────────
@@ -76,12 +79,12 @@ export async function middleware(request: NextRequest) {
 
   // ── Admin tries customer route ──────────────────────────────
   if (pathname.startsWith("/customer") && isAdmin) {
-    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+    return NextResponse.redirect(new URL("/admin/dashboards", request.url));
   }
 
   // ── Root redirect ───────────────────────────────────────────
   if (pathname === "/") {
-    const dest = isAdmin ? "/admin/dashboard" : "/customer/dashboard";
+    const dest = isAdmin ? "/admin/dashboards" : "/customer/dashboard";
     return NextResponse.redirect(new URL(dest, request.url));
   }
 

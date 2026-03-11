@@ -1,8 +1,5 @@
 "use client";
-// ============================================================
-// AGENT 13 — components/shared/LoginView.tsx
-// VIEW: Login form UI — no Supabase calls, receives action as prop
-// ============================================================
+
 import { useActionState } from "react";
 import { loginAction } from "@/actions/authActions";
 import { Milk } from "lucide-react";

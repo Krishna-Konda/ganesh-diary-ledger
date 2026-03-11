@@ -1,9 +1,5 @@
 "use server";
-// ============================================================
-// AGENT 7 — actions/authActions.ts
-// CONTROLLER: Server Actions for authentication
-// Uses your existing Supabase auth + profiles.role field
-// ============================================================
+
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -12,7 +8,7 @@ import { revalidatePath } from "next/cache";
 export async function loginAction(
   _prevState: { error: string } | null,
   formData: FormData,
-): Promise<{ error: string } | null> {
+) {
   const supabase = await createClient();
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -46,8 +42,8 @@ export async function loginAction(
   revalidatePath("/", "layout");
 
   // Role-based redirect
-  if (profile.role === "admin") {
-    redirect("/admin/dashboard");
+  if (data.user.app_metadata.role === "admin") {
+    redirect("/dashboard");
   } else {
     redirect("/customer/dashboard");
   }

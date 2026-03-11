@@ -9,7 +9,7 @@ export default function PendingPage() {
           <Milk size={28} color="#fff" />
         </div>
         <div style={s.icon}>
-          <Clock size={40} color="#b85c00" />
+          <Clock style={{ justifySelf: "center" }} size={40} color="#b85c00" />
         </div>
         <h1 style={s.title}>Pending Approval</h1>
         <p style={s.desc}>
