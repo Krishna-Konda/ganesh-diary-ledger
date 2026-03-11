@@ -9,7 +9,7 @@ export async function getAllProducts(): Promise<Product[]> {
     .select("*")
     .order("name", { ascending: true });
 
-  if (error) throw new Error(error.message);
+  if (error) console.log(error);
   return data || [];
 }
 
@@ -23,6 +23,7 @@ export async function getProductById(id: string): Promise<Product | null> {
     .single();
 
   if (error) throw new Error(error.message);
+
   return data;
 }
 

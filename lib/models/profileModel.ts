@@ -28,7 +28,7 @@ export async function getAllCustomers(): Promise<Profile[]> {
     .eq("role", "customer")
     .order("full_name", { ascending: true });
 
-  if (error) throw new Error(error.message);
+  if (error) console.log(error);
   return data || [];
 }
 
