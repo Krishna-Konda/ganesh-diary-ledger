@@ -114,9 +114,11 @@ export function AuthForm() {
       setMessage("Signed in successfully!");
 
       // Get user with role and redirect accordingly
-      const user = await getCurrentUser();
-      if (user) {
-        if (user.role === "admin") {
+      if (data.user) {
+        // ✅ Use server action — it uses service role key to bypass RLS
+        const userWithRole = await getCurrentUser();
+
+        if (userWithRole?.role === "admin") {
           router.replace("/admin/dashboard");
         } else {
           router.replace("/dashboard");
