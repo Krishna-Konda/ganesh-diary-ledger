@@ -37,8 +37,6 @@ export default function AdminDashboardPage() {
       recentEntries={recentEntries}
       loading={loading}
       currentMonth={currentMonth}
-      activeNav={activeNav}
-      onNavClick={handleNavClick}
       onNewEntry={() => router.push("/admin/add-entry")}
       onTogglePayment={handleTogglePayment}
     />

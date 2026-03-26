@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAllCustomers } from "@/lib/models/profileModel";
 import { getPurchasesByCustomer } from "@/lib/models/purchaseModel";
+import BottomNav from "@/components/admin/BottomNav";
 import { ArrowLeft, Milk, ChevronRight, IndianRupee } from "lucide-react";
 import type { Profile } from "@/types/database";
 
