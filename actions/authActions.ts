@@ -43,7 +43,7 @@ export async function loginAction(
 
   // Role-based redirect
   if (data.user.app_metadata.role === "admin") {
-    redirect("/dashboard");
+    redirect("/admin/dashboards");
   } else {
     redirect("/customer/dashboard");
   }

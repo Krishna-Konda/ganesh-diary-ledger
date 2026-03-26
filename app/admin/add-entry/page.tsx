@@ -1,38 +1,138 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { addEntryAction } from "@/actions/purchaseActions";
+import { addMultipleEntriesAction } from "@/actions/purchaseActions";
 import { getAllCustomers } from "@/lib/models/profileModel";
 import { getAllProducts } from "@/lib/models/productModel";
-import { ArrowLeft, Milk } from "lucide-react";
+import { ArrowLeft, Milk, Plus, Trash2 } from "lucide-react";
 import type { Profile, Product } from "@/types/database";
+
+// ── One product row ──────────────────────────────────────────
+interface EntryRow {
+  rowKey: string;
+  product_id: string;
+  quantity: string;
+  unit_price: number;
+  unit: string;
+  product_name: string;
+}
+
+function makeRow(): EntryRow {
+  return {
+    rowKey: Math.random().toString(36).slice(2),
+    product_id: "",
+    quantity: "",
+    unit_price: 0,
+    unit: "",
+    product_name: "",
+  };
+}
 
 export default function AddEntryPage() {
   const router = useRouter();
-  const [state, formAction, isPending] = useActionState(addEntryAction, null);
+
   const [customers, setCustomers] = useState<Profile[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedPrice, setSelectedPrice] = useState("");
-  const [quantity, setQuantity] = useState("");
+  const [customerId, setCustomerId] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [rows, setRows] = useState<EntryRow[]>([makeRow()]);
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     Promise.all([getAllCustomers(), getAllProducts()]).then(([c, p]) => {
       setCustomers(c);
       setProducts(p);
-      if (p[0]) setSelectedPrice(String(p[0].unit_price));
     });
   }, []);
 
-  useEffect(() => {
-    if (state?.success) router.push("/admin/dashboard");
-  }, [state]);
+  function handleProductChange(rowKey: string, productId: string) {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+    setRows((prev) =>
+      prev.map((r) =>
+        r.rowKey === rowKey
+          ? {
+              ...r,
+              product_id: productId,
+              unit_price: product.unit_price,
+              unit: product.unit,
+              product_name: product.name,
+            }
+          : r,
+      ),
+    );
+  }
 
-  const total = Number(quantity) * Number(selectedPrice) || 0;
+  function handleQuantityChange(rowKey: string, qty: string) {
+    setRows((prev) =>
+      prev.map((r) => (r.rowKey === rowKey ? { ...r, quantity: qty } : r)),
+    );
+  }
+
+  function addRow() {
+    setRows((prev) => [...prev, makeRow()]);
+  }
+
+  function removeRow(rowKey: string) {
+    if (rows.length === 1) return;
+    setRows((prev) => prev.filter((r) => r.rowKey !== rowKey));
+  }
+
+  const validRows = rows.filter((r) => r.product_id && Number(r.quantity) > 0);
+
+  const grandTotal = rows.reduce(
+    (sum, r) => sum + (Number(r.quantity) || 0) * r.unit_price,
+    0,
+  );
+
+  async function handleSave() {
+    setError("");
+
+    if (!customerId) {
+      setError("Please select a customer");
+      return;
+    }
+    if (!date) {
+      setError("Please select a date");
+      return;
+    }
+    if (validRows.length === 0) {
+      setError("Add at least one product with a quantity");
+      return;
+    }
+
+    setIsPending(true);
+
+    const formData = new FormData();
+    formData.set("customer_id", customerId);
+    formData.set("purchase_date", date);
+    formData.set(
+      "rows",
+      JSON.stringify(
+        validRows.map((r) => ({
+          product_id: r.product_id,
+          quantity: Number(r.quantity),
+          unit_price: r.unit_price,
+        })),
+      ),
+    );
+
+    const result = await addMultipleEntriesAction(null, formData);
+    setIsPending(false);
+
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      router.push("/admin/dashboard");
+    }
+  }
 
   return (
     <div style={s.shell}>
       <div style={s.phone}>
+        {/* Header — identical to your original */}
         <header style={s.header}>
           <button style={s.back} onClick={() => router.back()}>
             <ArrowLeft size={20} />
@@ -44,12 +144,15 @@ export default function AddEntryPage() {
         </header>
 
         <main style={s.body}>
-          {state?.error && <div style={s.errBox}>{state.error}</div>}
+          {error && <div style={s.errBox}>{error}</div>}
 
-          <form action={formAction} style={s.form}>
-            {/* Customer */}
+          <div style={s.form}>
+            {/* Customer — same as your original */}
             <label style={s.label}>Customer *</label>
-            <select name="customer_id" required style={s.select}>
+            <select
+              style={s.select}
+              value={customerId}
+              onChange={(e) => setCustomerId(e.target.value)}>
               <option value="">Select customer…</option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -58,72 +161,129 @@ export default function AddEntryPage() {
               ))}
             </select>
 
-            {/* Product */}
-            <label style={s.label}>Product *</label>
-            <select
-              name="product_id"
-              required
-              style={s.select}
-              onChange={(e) => {
-                const p = products.find((p) => p.id === e.target.value);
-                if (p) setSelectedPrice(String(p.unit_price));
-              }}>
-              <option value="">Select product…</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} — ₹{p.unit_price}/{p.unit}
-                </option>
-              ))}
-            </select>
-
-            {/* Hidden unit price */}
-            <input type="hidden" name="unit_price" value={selectedPrice} />
-
-            {/* Quantity */}
-            <label style={s.label}>Quantity (litres) *</label>
-            <input
-              name="quantity"
-              type="number"
-              step="0.5"
-              min="0.5"
-              placeholder="e.g. 2.5"
-              required
-              style={s.input}
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-            />
-
-            {/* Date */}
+            {/* Date — same as your original */}
             <label style={s.label}>Date *</label>
             <input
-              name="purchase_date"
               type="date"
-              required
-              defaultValue={new Date().toISOString().split("T")[0]}
               style={s.input}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
             />
 
-            {/* Total preview */}
-            {total > 0 && (
+            {/* Products header with Add button */}
+            <div style={s.rowsHeader}>
+              <label style={s.label}>Products *</label>
+              <button style={s.addRowBtn} onClick={addRow} type="button">
+                <Plus size={14} />
+                Add Product
+              </button>
+            </div>
+
+            {/* One card per product row */}
+            {rows.map((row, idx) => (
+              <div key={row.rowKey} style={s.productRow}>
+                {/* Row number circle */}
+                <div style={s.rowNum}>{idx + 1}</div>
+
+                <div style={s.rowFields}>
+                  {/* Product dropdown */}
+                  <select
+                    style={s.select}
+                    value={row.product_id}
+                    onChange={(e) =>
+                      handleProductChange(row.rowKey, e.target.value)
+                    }>
+                    <option value="">Select product…</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} — ₹{p.unit_price}/{p.unit}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Quantity + line total shown only after product picked */}
+                  {row.product_id && (
+                    <div style={s.qtyRow}>
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="0.5"
+                        placeholder={`Qty (${row.unit})`}
+                        style={{ ...s.input, flex: 1 }}
+                        value={row.quantity}
+                        onChange={(e) =>
+                          handleQuantityChange(row.rowKey, e.target.value)
+                        }
+                      />
+                      {Number(row.quantity) > 0 && (
+                        <div style={s.lineTotal}>
+                          <span style={s.lineTotalLabel}>
+                            @ ₹{row.unit_price}
+                          </span>
+                          <span style={s.lineTotalAmt}>
+                            ₹
+                            {(
+                              Number(row.quantity) * row.unit_price
+                            ).toLocaleString("en-IN", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Remove button — only when more than 1 row */}
+                {rows.length > 1 && (
+                  <button
+                    style={s.removeBtn}
+                    onClick={() => removeRow(row.rowKey)}
+                    type="button">
+                    <Trash2 size={15} />
+                  </button>
+                )}
+              </div>
+            ))}
+
+            {/* Grand total — same style as your original totalPreview */}
+            {grandTotal > 0 && (
               <div style={s.totalPreview}>
-                <span style={s.totalLbl}>Total Amount</span>
+                <span style={s.totalLbl}>
+                  Grand Total ({validRows.length}{" "}
+                  {validRows.length === 1 ? "item" : "items"})
+                </span>
                 <span style={s.totalAmt}>
-                  ₹{total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                  ₹
+                  {grandTotal.toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                  })}
                 </span>
               </div>
             )}
 
-            <button type="submit" disabled={isPending} style={s.btn}>
-              {isPending ? "Saving…" : "Save Entry"}
+            {/* Save button — same style as your original */}
+            <button
+              type="button"
+              disabled={isPending}
+              style={s.btn}
+              onClick={handleSave}>
+              {isPending
+                ? "Saving…"
+                : `Save ${validRows.length > 0 ? validRows.length : ""} ${
+                    validRows.length === 1 ? "Entry" : "Entries"
+                  }`}
             </button>
-          </form>
+          </div>
         </main>
       </div>
     </div>
   );
 }
 
+// ── Styles — your originals kept exactly + new ones appended ──
 const s: Record<string, React.CSSProperties> = {
+  // your original styles — untouched
   shell: {
     minHeight: "100vh",
     background: "#f0f0f0",
@@ -196,6 +356,7 @@ const s: Record<string, React.CSSProperties> = {
     fontFamily: "inherit",
     background: "#fff",
     color: "#1a1a1a",
+    width: "100%",
   },
   totalPreview: {
     background: "#e6f4ed",
@@ -218,5 +379,80 @@ const s: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     marginTop: 8,
     boxShadow: "0 4px 12px rgba(26,122,74,0.25)",
+  },
+
+  // new styles — match your existing look
+  rowsHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: -4,
+  },
+  addRowBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    background: "#e6f4ed",
+    color: "#1a7a4a",
+    border: "none",
+    borderRadius: 8,
+    padding: "6px 10px",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  productRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 8,
+    background: "#fff",
+    border: "1.5px solid #e0e0e0",
+    borderRadius: 12,
+    padding: "12px 10px",
+  },
+  rowNum: {
+    width: 22,
+    height: 22,
+    borderRadius: "50%",
+    background: "#1a7a4a",
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: 800,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    marginTop: 12,
+  },
+  rowFields: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  qtyRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+  lineTotal: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    flexShrink: 0,
+  },
+  lineTotalLabel: { fontSize: 10, color: "#999" },
+  lineTotalAmt: { fontSize: 14, fontWeight: 800, color: "#1a7a4a" },
+  removeBtn: {
+    background: "#fff0f0",
+    border: "none",
+    borderRadius: 8,
+    padding: 7,
+    cursor: "pointer",
+    color: "#c0392b",
+    display: "flex",
+    alignItems: "center",
+    flexShrink: 0,
+    marginTop: 10,
   },
 };

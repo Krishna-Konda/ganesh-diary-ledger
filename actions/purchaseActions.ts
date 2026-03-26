@@ -54,7 +54,7 @@ export async function addEntryAction(
 
   if (error) return { error: error.message };
 
-  revalidatePath("/admin/dashboard");
+  revalidatePath("/admin/dashboards");
   revalidatePath("/admin/add-entry");
   return { error: "", success: true };
 }
@@ -74,7 +74,7 @@ export async function togglePaymentStatusAction(
 
   if (error) return { error: error.message };
 
-  revalidatePath("/admin/dashboard");
+  revalidatePath("/admin/dashboards");
   revalidatePath("/admin/customers");
   return { error: "" };
 }
@@ -97,6 +97,66 @@ export async function deleteEntryAction(
 
   if (error) return { error: error.message };
 
-  revalidatePath("/admin/dashboard");
+  revalidatePath("/admin/dashboards");
   return { error: "" };
+}
+// ── ADD THIS FUNCTION AT THE BOTTOM OF purchaseActions.ts ────
+// No other changes needed in this file
+
+export async function addMultipleEntriesAction(
+  _prevState: { error: string; success?: boolean } | null,
+  formData: FormData,
+): Promise<{ error: string; success?: boolean }> {
+  const supabase = await createClient();
+
+  // Auth guard — same as your existing addEntryAction
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (profile?.role !== "admin") return { error: "Unauthorized" };
+
+  const customer_id = formData.get("customer_id") as string;
+  const purchase_date = formData.get("purchase_date") as string;
+  const rowsJson = formData.get("rows") as string;
+
+  if (!customer_id || !purchase_date || !rowsJson) {
+    return { error: "Missing required fields" };
+  }
+
+  // Parse the rows array sent from the page
+  let rows: { product_id: string; quantity: number; unit_price: number }[];
+  try {
+    rows = JSON.parse(rowsJson);
+  } catch {
+    return { error: "Invalid row data" };
+  }
+
+  if (!rows.length) {
+    return { error: "No products selected" };
+  }
+
+  // Build the batch insert — one row per product
+  const inserts = rows.map((r) => ({
+    customer_id,
+    product_id: r.product_id,
+    quantity: r.quantity,
+    unit_price: r.unit_price,
+    purchase_date,
+    payment_status: "pending" as const,
+  }));
+
+  const { error } = await supabase.from("purchases").insert(inserts);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/admin/add-entry");
+  return { error: "", success: true };
 }
