@@ -51,168 +51,97 @@ export default function CustomersPage() {
   );
 
   return (
-    <div style={s.shell}>
-      <div style={s.phone}>
-        <header style={s.header}>
-          <button style={s.back} onClick={() => router.back()}>
-            <ArrowLeft size={20} />
-          </button>
-          <span style={s.title}>Customers ({customers.length})</span>
-          <div style={s.logo}>
-            <Milk size={18} color="#fff" />
-          </div>
-        </header>
+    <div className="bg-gray-200 min-h-screen flex justify-center">
+      {/* MOBILE CONTAINER */}
+      <div className="w-full max-w-[420px] bg-gray-100 min-h-screen relative px-4 py-4">
+        {/* HEADER */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xl">☰</span>
+          <h1 className="text-lg font-bold">Customers</h1>
+          <span className="text-lg">🔍</span>
+        </div>
 
-        <main style={s.body}>
-          <input
-            style={s.search}
-            placeholder="Search by name or phone…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        {/* SEARCH */}
+        <input
+          className="w-full bg-gray-200 rounded-full px-4 py-3 text-sm outline-none mb-4"
+          placeholder="Search by name, phone or route..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-          {loading ? (
-            <p style={s.empty}>Loading…</p>
-          ) : filtered.length === 0 ? (
-            <p style={s.empty}>No customers found</p>
-          ) : (
-            <div style={s.list}>
-              {filtered.map((c) => (
-                <div key={c.id} style={s.card}>
-                  <div style={s.avatar}>
-                    {(c.full_name?.[0] || "?").toUpperCase()}
-                  </div>
-                  <div style={s.info}>
-                    <p style={s.name}>{c.full_name || "—"}</p>
-                    <p style={s.sub}>{c.phone || c.email}</p>
-                    <p style={s.sub}>{c.address || "No address"}</p>
-                  </div>
-                  <div style={s.right}>
-                    <div
-                      style={{
-                        ...s.balBadge,
-                        background: c.outstanding > 0 ? "#fff0f0" : "#e6f4ed",
-                        color: c.outstanding > 0 ? "#c0392b" : "#1a7a4a",
-                      }}>
-                      <IndianRupee size={11} />
-                      {c.outstanding.toLocaleString("en-IN")}
-                    </div>
-                    <p style={s.balLbl}>
-                      {c.outstanding > 0 ? "pending" : "settled"}
-                    </p>
-                    <ChevronRight size={14} color="#ccc" />
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* TABS */}
+        <div className="flex gap-2 overflow-x-auto mb-4">
+          {["All Customers", "Pending Payment", "Active Deliveries", "VIP"].map(
+            (tab, i) => (
+              <div
+                key={i}
+                className={`px-4 py-2 rounded-full text-xs whitespace-nowrap ${
+                  i === 0
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}>
+                {tab}
+              </div>
+            ),
           )}
-        </main>
+        </div>
+
+        {/* LIST */}
+        <div className="flex flex-col gap-4">
+          {filtered.map((c) => {
+            const isPending = c.outstanding > 0;
+
+            return (
+              <div key={c.id} className="bg-white rounded-2xl p-4 shadow-sm">
+                {/* TOP */}
+                <div className="flex justify-between items-center">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center font-bold">
+                    {(c.full_name?.slice(0, 2) || "NA").toUpperCase()}
+                  </div>
+
+                  <span
+                    className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                      isPending
+                        ? "bg-red-100 text-red-600"
+                        : "bg-green-100 text-green-600"
+                    }`}>
+                    {isPending ? "PENDING" : "PAID"}
+                  </span>
+                </div>
+
+                {/* BODY */}
+                <div className="mt-3">
+                  <h2 className="font-semibold text-base">
+                    {c.full_name || "—"}
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    Route: {c.address || "No route"}
+                  </p>
+                </div>
+
+                {/* DIVIDER */}
+                <div className="h-px bg-gray-200 my-3" />
+                <div className="flex justify-between items-end">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] text-gray-400">TOTAL PURCHASE</p>
+                    <p className="text-lg font-bold text-blue-700">
+                      ₹{c.total_billed}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] text-gray-400">DUE AMOUNT</p>
+                    <p className="text-lg font-bold text-blue-700">
+                      ₹{c.outstanding}
+                    </p>
+                  </div>
+
+                  <span className="text-gray-400 text-xl ml-2">›</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
-
-const s: Record<string, React.CSSProperties> = {
-  shell: {
-    minHeight: "90vh",
-    background: "#f0f0f0",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  phone: {
-    width: "100%",
-    maxWidth: 430,
-    minHeight: "100vh",
-    background: "#f7f8fa",
-    display: "flex",
-    flexDirection: "column",
-    fontFamily: "'DM Sans','Nunito',sans-serif",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "14px 18px",
-    background: "#fff",
-    borderBottom: "1px solid #eee",
-  },
-  back: {
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    color: "#1a1a1a",
-    padding: 4,
-  },
-  title: { fontSize: 16, fontWeight: 700, color: "#1a1a1a" },
-  logo: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    background: "#1a7a4a",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  body: { flex: 1, padding: "16px" },
-  search: {
-    width: "100%",
-    border: "1.5px solid #e0e0e0",
-    borderRadius: 12,
-    padding: "12px 14px",
-    fontSize: 14,
-    marginBottom: 16,
-    outline: "none",
-    fontFamily: "inherit",
-    background: "#fff",
-    boxSizing: "border-box",
-  },
-  empty: {
-    textAlign: "center",
-    padding: "40px 0",
-    color: "#bbb",
-    fontSize: 14,
-  },
-  list: { display: "flex", flexDirection: "column", gap: 10 },
-  card: {
-    background: "#fff",
-    borderRadius: 14,
-    padding: "14px",
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
-  },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    background: "#e6f4ed",
-    color: "#1a7a4a",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 17,
-    fontWeight: 800,
-    flexShrink: 0,
-  },
-  info: { flex: 1, minWidth: 0 },
-  name: { fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 },
-  sub: { fontSize: 11, color: "#999", marginBottom: 1 },
-  right: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-end",
-    gap: 2,
-  },
-  balBadge: {
-    display: "flex",
-    alignItems: "center",
-    gap: 2,
-    fontSize: 12,
-    fontWeight: 800,
-    padding: "4px 8px",
-    borderRadius: 8,
-  },
-  balLbl: { fontSize: 10, color: "#aaa" },
-};
