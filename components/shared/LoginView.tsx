@@ -2,129 +2,75 @@
 
 import { useActionState } from "react";
 import { loginAction } from "@/actions/authActions";
-import { Milk } from "lucide-react";
-import Link from "next/link";
 
 export default function LoginView() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
 
   return (
-    <div style={s.shell}>
-      <div style={s.card}>
-        {/* Logo */}
-        <div style={s.logoRow}>
-          <div style={s.logoBox}>
-            <Milk size={28} color="#fff" />
-          </div>
-          <div>
-            <p style={s.brand}>Ganesh Dairy</p>
-            <p style={s.sub}>Customer & Admin Portal</p>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-6">
+      {/* Glass Card */}
+      <div className="w-full max-w-md backdrop-blur-xl bg-white/70 rounded-3xl shadow-xl p-10 border border-white/30">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-extrabold text-gray-900">
+            Ganesh Dairy
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">Premium Customer Portal</p>
         </div>
 
-        <h1 style={s.title}>Welcome back</h1>
-        <p style={s.desc}>Sign in to view your account</p>
+        <h2 className="text-2xl font-bold mb-2">Welcome Back</h2>
+        <p className="text-gray-500 mb-6">Sign in to access your dashboard</p>
 
-        {state?.error && <div style={s.errorBox}>{state.error}</div>}
+        {state?.error && (
+          <div className="bg-red-100 text-red-600 px-4 py-2 rounded-xl mb-4 text-sm">
+            {state.error}
+          </div>
+        )}
 
-        <form action={formAction} style={s.form}>
-          <label style={s.label}>Email</label>
-          <input
-            name="email"
-            type="email"
-            placeholder="you@example.com"
-            required
-            style={s.input}
-          />
+        <form action={formAction} className="space-y-5">
+          {/* Email */}
+          <div>
+            <label className="text-sm font-semibold text-gray-600">Email</label>
+            <input
+              name="email"
+              type="email"
+              required
+              placeholder="you@example.com"
+              className="w-full mt-2 h-12 px-4 rounded-full bg-white/80 border border-gray-200 focus:ring-4 focus:ring-blue-200 outline-none transition"
+            />
+          </div>
 
-          <label style={s.label}>Password</label>
-          <input
-            name="password"
-            type="password"
-            placeholder="••••••••"
-            required
-            style={s.input}
-          />
+          {/* Password */}
+          <div>
+            <label className="text-sm font-semibold text-gray-600">
+              Password
+            </label>
+            <input
+              name="password"
+              type="password"
+              required
+              placeholder="••••••••"
+              className="w-full mt-2 h-12 px-4 rounded-full bg-white/80 border border-gray-200 focus:ring-4 focus:ring-blue-200 outline-none transition"
+            />
+          </div>
 
-          <button type="submit" disabled={isPending} style={s.btn}>
-            {isPending ? "Signing in…" : "Sign In"}
+          {/* Button */}
+          <button
+            type="submit"
+            disabled={isPending}
+            className="w-full h-12 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition">
+            {isPending ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <p style={s.footer}>
+        {/* Footer */}
+        <p className="text-center text-sm text-gray-500 mt-6">
           New customer?{" "}
-          <Link href="/signup" style={s.link}>
-            Request an account
-          </Link>
+          <a href="/signup" className="text-blue-600 font-semibold">
+            Request account
+          </a>
         </p>
       </div>
     </div>
   );
 }
-
-const s: Record<string, React.CSSProperties> = {
-  shell: {
-    minHeight: "100vh",
-    background: "#f0f4f0",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  card: {
-    width: "100%",
-    maxWidth: 400,
-    background: "#fff",
-    borderRadius: 20,
-    padding: 32,
-    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-  },
-  logoRow: { display: "flex", alignItems: "center", gap: 12, marginBottom: 28 },
-  logoBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    background: "#1a7a4a",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  brand: { fontSize: 18, fontWeight: 800, color: "#1a1a1a" },
-  sub: { fontSize: 11, color: "#999", marginTop: 2 },
-  title: { fontSize: 22, fontWeight: 800, color: "#1a1a1a", marginBottom: 4 },
-  desc: { fontSize: 13, color: "#888", marginBottom: 24 },
-  errorBox: {
-    background: "#fff0f0",
-    border: "1px solid #ffc5c5",
-    borderRadius: 10,
-    padding: "10px 14px",
-    color: "#c0392b",
-    fontSize: 13,
-    marginBottom: 16,
-  },
-  form: { display: "flex", flexDirection: "column", gap: 12 },
-  label: { fontSize: 12, fontWeight: 700, color: "#444", marginBottom: -4 },
-  input: {
-    border: "1.5px solid #e0e0e0",
-    borderRadius: 10,
-    padding: "12px 14px",
-    fontSize: 14,
-    outline: "none",
-    fontFamily: "inherit",
-    color: "#1a1a1a",
-  },
-  btn: {
-    background: "linear-gradient(135deg,#1a7a4a,#25a366)",
-    color: "#fff",
-    border: "none",
-    borderRadius: 12,
-    padding: "14px 0",
-    fontSize: 15,
-    fontWeight: 700,
-    cursor: "pointer",
-    marginTop: 4,
-  },
-  footer: { textAlign: "center", fontSize: 13, color: "#888", marginTop: 20 },
-  link: { color: "#1a7a4a", fontWeight: 700, textDecoration: "none" },
-};
