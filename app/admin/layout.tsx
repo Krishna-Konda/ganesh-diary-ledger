@@ -3,6 +3,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import BottomNav from "@/components/admin/BottomNav";
+import { logoutAction } from "@/actions/authActions";
 
 export default function AdminLayout({
   children,
@@ -13,13 +14,14 @@ export default function AdminLayout({
   const router = useRouter();
 
   const handleNavClick = (label: string, href: string) => {
-    if (href === "#") {
-      // handle logout
+    if (label === "Logout") {
+      logoutAction();
+      router.replace("/login");
       return;
     }
+
     router.push(href);
   };
-
   return (
     <div style={{ paddingBottom: 70, minHeight: "100vh" }}>
       {children}

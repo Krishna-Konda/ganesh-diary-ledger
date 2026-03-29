@@ -1,8 +1,3 @@
-// ============================================================
-// AGENT 10 — middleware.ts  (project root)
-// Route guard: reads profiles.role and is_approved
-// Redirects unauthenticated / wrong-role users
-// ============================================================
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -45,7 +40,7 @@ export async function middleware(request: NextRequest) {
 
       const dest =
         user.app_metadata?.role === "admin"
-          ? "/admin/dashboard"
+          ? "/admin/dashboards"
           : "/customer/dashboard";
       return NextResponse.redirect(new URL(dest, request.url));
     }

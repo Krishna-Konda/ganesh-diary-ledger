@@ -47,6 +47,10 @@ export default function AddEntryPage() {
     });
   }, []);
 
+  function isBuffaloMilk(productName: string) {
+    return productName.toLowerCase().includes("buffalo");
+  }
+
   function handleProductChange(rowKey: string, productId: string) {
     const product = products.find((p) => p.id === productId);
     if (!product) return;
@@ -82,10 +86,17 @@ export default function AddEntryPage() {
 
   const validRows = rows.filter((r) => r.product_id && Number(r.quantity) > 0);
 
-  const grandTotal = rows.reduce(
-    (sum, r) => sum + (Number(r.quantity) || 0) * r.unit_price,
-    0,
-  );
+  const grandTotal = rows.reduce((sum, r) => {
+    if (!r.product_id) return sum;
+
+    const isBuffalo = isBuffaloMilk(r.product_name);
+
+    if (isBuffalo) {
+      return sum + (Number(r.quantity) || 0); // treat as ₹
+    }
+
+    return sum + (Number(r.quantity) || 0) * r.unit_price;
+  }, 0);
 
   async function handleSave() {
     setError("");
@@ -106,16 +117,23 @@ export default function AddEntryPage() {
     setIsPending(true);
 
     const formData = new FormData();
+
     formData.set("customer_id", customerId);
     formData.set("purchase_date", date);
     formData.set(
       "rows",
       JSON.stringify(
-        validRows.map((r) => ({
-          product_id: r.product_id,
-          quantity: Number(r.quantity),
-          unit_price: r.unit_price,
-        })),
+        validRows.map((r) => {
+          const isBuffalo = r.product_name?.toLowerCase().includes("buffalo");
+
+          return {
+            product_id: r.product_id,
+            quantity: isBuffalo ? 1 : Number(r.quantity),
+            unit_price: isBuffalo
+              ? Number(r.quantity) // treat input as ₹
+              : r.unit_price,
+          };
+        }),
       ),
     );
 
@@ -125,7 +143,7 @@ export default function AddEntryPage() {
     if (result?.error) {
       setError(result.error);
     } else {
-      router.push("/admin/dashboard");
+      router.push("/admin/dashboards");
     }
   }
 
@@ -222,8 +240,9 @@ export default function AddEntryPage() {
                           </span>
                           <span style={s.lineTotalAmt}>
                             ₹
-                            {(
-                              Number(row.quantity) * row.unit_price
+                            {(isBuffaloMilk(row.product_name)
+                              ? Number(row.quantity)
+                              : Number(row.quantity) * row.unit_price
                             ).toLocaleString("en-IN", {
                               minimumFractionDigits: 2,
                             })}

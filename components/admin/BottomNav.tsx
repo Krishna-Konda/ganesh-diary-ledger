@@ -11,14 +11,17 @@ import {
   Package,
   LogOut,
 } from "lucide-react";
+type NavItem =
+  | { icon: any; label: string; href: string }
+  | { icon: any; label: string; action: "logout" };
 
-const NAV = [
+const NAV: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboards" },
   { icon: PlusCircle, label: "Add Entry", href: "/admin/add-entry" },
   { icon: Users, label: "Customers", href: "/admin/customers" },
   { icon: ShieldCheck, label: "Approvals", href: "/admin/approvals" },
   { icon: Package, label: "Products", href: "/admin/products" },
-  { icon: LogOut, label: "Logout", href: "#" },
+  { icon: LogOut, label: "Logout", action: "logout" }, // ✅ correct
 ];
 
 export default function BottomNav({ activeNav, onNavClick }: Props) {
@@ -32,7 +35,13 @@ export default function BottomNav({ activeNav, onNavClick }: Props) {
           <button
             key={item.label}
             style={s.navBtn}
-            onClick={() => onNavClick(item.label, item.href)}>
+            onClick={() => {
+              if ("href" in item) {
+                onNavClick(item.label, item.href);
+              } else {
+                onNavClick("Logout", "");
+              }
+            }}>
             <div
               style={{
                 ...s.navIcon,

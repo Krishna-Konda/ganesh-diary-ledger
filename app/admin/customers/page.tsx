@@ -114,7 +114,7 @@ export default function CustomersPage() {
 
 const s: Record<string, React.CSSProperties> = {
   shell: {
-    minHeight: "100vh",
+    minHeight: "90vh",
     background: "#f0f0f0",
     display: "flex",
     alignItems: "center",
