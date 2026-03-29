@@ -56,9 +56,7 @@ export default function CustomersPage() {
       <div className="w-full max-w-[420px] bg-gray-100 min-h-screen relative px-4 py-4">
         {/* HEADER */}
         <div className="flex items-center justify-between mb-4">
-          <span className="text-xl">☰</span>
           <h1 className="text-lg font-bold">Customers</h1>
-          <span className="text-lg">🔍</span>
         </div>
 
         {/* SEARCH */}

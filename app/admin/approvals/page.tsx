@@ -43,202 +43,104 @@ export default function ApprovalsPage() {
   }
 
   return (
-    <div style={s.shell}>
-      <div style={s.phone}>
-        <header style={s.header}>
-          <button style={s.back} onClick={() => router.back()}>
-            <ArrowLeft size={20} />
+    <div className="bg-gray-200 min-h-screen flex justify-center">
+      {/* MOBILE CONTAINER */}
+      <div className="w-full max-w-[420px] bg-gray-100 min-h-screen px-4 py-4">
+        {/* HEADER */}
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => router.back()}>
+            <ArrowLeft className="w-5 h-5 text-blue-700" />
           </button>
-          <span style={s.title}>Approvals</span>
-          <div style={s.logo}>
-            <Milk size={18} color="#fff" />
+          <h1 className="text-lg font-bold text-blue-700">Approvals</h1>
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+            👤
           </div>
-        </header>
+        </div>
 
-        <main style={s.body}>
-          <div style={s.countRow}>
-            <Clock size={16} color="#b85c00" />
-            <span style={s.countTxt}>
-              {pending.length} pending approval{pending.length !== 1 ? "s" : ""}
-            </span>
+        {/* PENDING BANNER */}
+        <div className="flex items-center gap-3 bg-orange-100 border border-orange-200 rounded-2xl p-4 mb-6">
+          <div className="w-10 h-10 rounded-full bg-orange-200 flex items-center justify-center">
+            <Clock className="w-5 h-5 text-orange-700" />
           </div>
+          <div>
+            <p className="font-semibold text-orange-800">
+              {pending.length} Pending Approval
+            </p>
+            <p className="text-sm text-orange-700">
+              You have {pending.length} user request
+              {pending.length !== 1 ? "s" : ""} waiting for review.
+            </p>
+          </div>
+        </div>
 
-          {loading ? (
-            <p style={s.empty}>Loading…</p>
-          ) : pending.length === 0 ? (
-            <div style={s.emptyBox}>
-              <UserCheck
-                size={40}
-                color="#1a7a4a"
-                style={{ margin: "0 auto 12px", display: "block" }}
-              />
-              <p style={s.emptyTitle}>All caught up!</p>
-              <p style={s.emptySub}>No pending approvals right now.</p>
-            </div>
-          ) : (
-            <div style={s.list}>
-              {pending.map((customer) => (
-                <div key={customer.id} style={s.card}>
-                  <div style={s.avatar}>
+        {/* CONTENT */}
+        {loading ? (
+          <p className="text-center text-gray-400 mt-10">Loading…</p>
+        ) : pending.length === 0 ? (
+          <div className="text-center mt-20 text-gray-400">
+            <div className="text-4xl mb-3">📥</div>
+            <p className="font-semibold text-gray-500">
+              No other pending approvals
+            </p>
+            <p className="text-sm">Check back later for new requests</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {pending.map((customer) => (
+              <div
+                key={customer.id}
+                className="bg-white rounded-2xl p-4 shadow-sm">
+                {/* TOP */}
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-xl font-bold text-blue-700">
                     {(customer.full_name?.[0] || "?").toUpperCase()}
                   </div>
-                  <div style={s.info}>
-                    <p style={s.name}>{customer.full_name || "No name"}</p>
-                    <p style={s.detail}>{customer.email}</p>
-                    {customer.phone && <p style={s.detail}>{customer.phone}</p>}
-                    {customer.address && (
-                      <p style={s.detail}>{customer.address}</p>
+
+                  <div className="flex-1">
+                    <h2 className="font-semibold text-lg text-blue-900">
+                      {customer.full_name || "No name"}
+                    </h2>
+                    <p className="text-sm text-gray-500">{customer.email}</p>
+                    {customer.phone && (
+                      <p className="text-sm text-gray-400">{customer.phone}</p>
                     )}
-                    <p style={s.date}>
-                      Requested:{" "}
-                      {new Date(customer.created_at).toLocaleDateString(
-                        "en-IN",
-                      )}
-                    </p>
-                  </div>
-                  <div style={s.actions}>
-                    <button
-                      style={s.approveBtn}
-                      onClick={() => handleApprove(customer.id)}
-                      disabled={processing === customer.id}>
-                      <UserCheck size={16} />
-                      {processing === customer.id ? "…" : "Approve"}
-                    </button>
-                    <button
-                      style={s.rejectBtn}
-                      onClick={() => handleReject(customer.id)}
-                      disabled={processing === customer.id}>
-                      <UserX size={14} />
-                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </main>
+
+                {/* DIVIDER */}
+                <div className="h-px bg-gray-200 my-4" />
+
+                {/* DATE */}
+                <div className="flex justify-between text-sm mb-4">
+                  <span className="text-gray-500">Requested on:</span>
+                  <span className="font-medium">
+                    {new Date(customer.created_at).toLocaleDateString("en-IN")}
+                  </span>
+                </div>
+
+                {/* ACTIONS */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleReject(customer.id)}
+                    disabled={processing === customer.id}
+                    className="flex-1 border border-red-400 text-red-500 rounded-full py-3 font-semibold flex items-center justify-center gap-2">
+                    <UserX className="w-4 h-4" />
+                    Reject
+                  </button>
+
+                  <button
+                    onClick={() => handleApprove(customer.id)}
+                    disabled={processing === customer.id}
+                    className="flex-1 bg-green-500 text-white rounded-full py-3 font-semibold flex items-center justify-center gap-2 shadow-md">
+                    <UserCheck className="w-4 h-4" />
+                    {processing === customer.id ? "..." : "Approve"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
-const s: Record<string, React.CSSProperties> = {
-  shell: {
-    minHeight: "100vh",
-    background: "#f0f0f0",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  phone: {
-    width: "100%",
-    maxWidth: 430,
-    minHeight: "100vh",
-    background: "#f7f8fa",
-    display: "flex",
-    flexDirection: "column",
-    fontFamily: "'DM Sans','Nunito',sans-serif",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "14px 18px",
-    background: "#fff",
-    borderBottom: "1px solid #eee",
-  },
-  back: {
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    color: "#1a1a1a",
-    padding: 4,
-  },
-  title: { fontSize: 16, fontWeight: 700, color: "#1a1a1a" },
-  logo: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    background: "#1a7a4a",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  body: { flex: 1, padding: "16px" },
-  countRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    background: "#fff3e6",
-    borderRadius: 10,
-    padding: "10px 14px",
-    marginBottom: 16,
-  },
-  countTxt: { fontSize: 13, fontWeight: 600, color: "#b85c00" },
-  empty: {
-    textAlign: "center",
-    padding: "40px 0",
-    color: "#bbb",
-    fontSize: 14,
-  },
-  emptyBox: { textAlign: "center", padding: "60px 20px" },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: 700,
-    color: "#1a1a1a",
-    marginBottom: 6,
-  },
-  emptySub: { fontSize: 13, color: "#888" },
-  list: { display: "flex", flexDirection: "column", gap: 12 },
-  card: {
-    background: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    display: "flex",
-    alignItems: "flex-start",
-    gap: 12,
-    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    background: "#e6f4ed",
-    color: "#1a7a4a",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 18,
-    fontWeight: 800,
-    flexShrink: 0,
-  },
-  info: { flex: 1, minWidth: 0 },
-  name: { fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 3 },
-  detail: { fontSize: 12, color: "#777", marginBottom: 1 },
-  date: { fontSize: 11, color: "#bbb", marginTop: 4 },
-  actions: { display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 },
-  approveBtn: {
-    display: "flex",
-    alignItems: "center",
-    gap: 5,
-    background: "#1a7a4a",
-    color: "#fff",
-    border: "none",
-    borderRadius: 10,
-    padding: "8px 12px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  rejectBtn: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#fff0f0",
-    color: "#c0392b",
-    border: "1px solid #ffc5c5",
-    borderRadius: 10,
-    padding: "8px 0",
-    width: "100%",
-    cursor: "pointer",
-  },
-};

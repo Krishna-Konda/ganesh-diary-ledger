@@ -98,3 +98,34 @@ export async function updateProductPriceAction(
   revalidatePath("/admin/products");
   return { error: "" };
 }
+
+// ── Create product — admin only ────────────────────────────
+export async function createProductAction(
+  _prevState: { error: string } | null,
+  formData: FormData,
+): Promise<{ error: string }> {
+  const supabase = await createClient();
+
+  const name = (formData.get("name") as string)?.trim();
+  const category = (formData.get("category") as string)?.trim();
+  const unit = (
+    (formData.get("unit") as string)?.trim() || "liter"
+  ).toLowerCase();
+  const unit_price = Number(formData.get("unit_price"));
+
+  if (!name || !category || !unit_price || isNaN(unit_price)) {
+    return { error: "Invalid product data" };
+  }
+
+  const { error } = await supabase.from("products").insert({
+    name,
+    category,
+    unit,
+    unit_price,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/products");
+  return { error: "" };
+}
