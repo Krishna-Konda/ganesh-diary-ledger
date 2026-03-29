@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
 
   async function handleTogglePayment(id: string, status: "paid" | "pending") {
     await togglePaymentStatusAction(id, status);
-    refresh();
+    router.refresh();
   }
 
   return (

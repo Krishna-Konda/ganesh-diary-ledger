@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { addMultipleEntriesAction } from "@/actions/purchaseActions";
 import { getAllCustomers } from "@/lib/models/profileModel";
 import { getAllProducts } from "@/lib/models/productModel";
-import { ArrowLeft, Milk, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import type { Profile, Product } from "@/types/database";
 
-// ── One product row ──────────────────────────────────────────
+// ── Types ─────────────────────────────────────
 interface EntryRow {
   rowKey: string;
   product_id: string;
@@ -29,6 +29,7 @@ function makeRow(): EntryRow {
   };
 }
 
+// ── Page ─────────────────────────────────────
 export default function AddEntryPage() {
   const router = useRouter();
 
@@ -37,8 +38,8 @@ export default function AddEntryPage() {
   const [customerId, setCustomerId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [rows, setRows] = useState<EntryRow[]>([makeRow()]);
-  const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState("");
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     Promise.all([getAllCustomers(), getAllProducts()]).then(([c, p]) => {
@@ -47,13 +48,10 @@ export default function AddEntryPage() {
     });
   }, []);
 
-  function isBuffaloMilk(productName: string) {
-    return productName.toLowerCase().includes("buffalo");
-  }
-
   function handleProductChange(rowKey: string, productId: string) {
     const product = products.find((p) => p.id === productId);
     if (!product) return;
+
     setRows((prev) =>
       prev.map((r) =>
         r.rowKey === rowKey
@@ -89,10 +87,10 @@ export default function AddEntryPage() {
   const grandTotal = rows.reduce((sum, r) => {
     if (!r.product_id) return sum;
 
-    const isBuffalo = isBuffaloMilk(r.product_name);
+    const isBuffalo = r.product_name?.toLowerCase().includes("buffalo");
 
     if (isBuffalo) {
-      return sum + (Number(r.quantity) || 0); // treat as ₹
+      return sum + (Number(r.quantity) || 0); // 💥 direct ₹
     }
 
     return sum + (Number(r.quantity) || 0) * r.unit_price;
@@ -101,23 +99,12 @@ export default function AddEntryPage() {
   async function handleSave() {
     setError("");
 
-    if (!customerId) {
-      setError("Please select a customer");
-      return;
-    }
-    if (!date) {
-      setError("Please select a date");
-      return;
-    }
-    if (validRows.length === 0) {
-      setError("Add at least one product with a quantity");
-      return;
-    }
+    if (!customerId) return setError("Select customer");
+    if (!validRows.length) return setError("Add items");
 
     setIsPending(true);
 
     const formData = new FormData();
-
     formData.set("customer_id", customerId);
     formData.set("purchase_date", date);
     formData.set(
@@ -130,348 +117,193 @@ export default function AddEntryPage() {
             product_id: r.product_id,
             quantity: isBuffalo ? 1 : Number(r.quantity),
             unit_price: isBuffalo
-              ? Number(r.quantity) // treat input as ₹
+              ? Number(r.quantity) // 💥 store ₹ here
               : r.unit_price,
           };
         }),
       ),
     );
 
-    const result = await addMultipleEntriesAction(null, formData);
+    const res = await addMultipleEntriesAction(null, formData);
     setIsPending(false);
 
-    if (result?.error) {
-      setError(result.error);
-    } else {
-      router.push("/admin/dashboards");
-    }
+    if (res?.error) setError(res.error);
+    else router.push("/admin/dashboards");
   }
 
+  // ── UI ─────────────────────────────────────
   return (
-    <div style={s.shell}>
-      <div style={s.phone}>
-        {/* Header — identical to your original */}
-        <header style={s.header}>
-          <button style={s.back} onClick={() => router.back()}>
+    <div className="min-h-screen bg-gray-100 flex justify-center">
+      <div className="w-full max-w-md bg-gray-50 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 bg-white border-b">
+          <button onClick={() => router.back()}>
             <ArrowLeft size={20} />
           </button>
-          <span style={s.title}>New Entry</span>
-          <div style={s.logo}>
-            <Milk size={18} color="#fff" />
-          </div>
-        </header>
+          <h1 className="font-semibold">New Entry</h1>
+          <div className="text-xs text-gray-400">DRAFT</div>
+        </div>
 
-        <main style={s.body}>
-          {error && <div style={s.errBox}>{error}</div>}
+        <div className="p-4 space-y-4 flex-1 overflow-y-auto">
+          {/* Error */}
+          {error && (
+            <div className="bg-red-100 text-red-600 p-2 rounded text-sm">
+              {error}
+            </div>
+          )}
 
-          <div style={s.form}>
-            {/* Customer — same as your original */}
-            <label style={s.label}>Customer *</label>
+          {/* Customer */}
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <p className="text-xs text-gray-500 mb-2">CUSTOMER</p>
             <select
-              style={s.select}
+              className="w-full border rounded-lg p-2"
               value={customerId}
               onChange={(e) => setCustomerId(e.target.value)}>
-              <option value="">Select customer…</option>
+              <option value="">Select Customer</option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.full_name} — {c.phone || c.email}
+                  {c.full_name}
                 </option>
               ))}
             </select>
+          </div>
 
-            {/* Date — same as your original */}
-            <label style={s.label}>Date *</label>
+          {/* Date */}
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <p className="text-xs text-gray-500 mb-2">DATE</p>
             <input
               type="date"
-              style={s.input}
+              className="w-full border rounded-lg p-2"
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />
+          </div>
 
-            {/* Products header with Add button */}
-            <div style={s.rowsHeader}>
-              <label style={s.label}>Products *</label>
-              <button style={s.addRowBtn} onClick={addRow} type="button">
-                <Plus size={14} />
-                Add Product
+          {/* Products */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-semibold">ORDER ITEMS</p>
+              <button
+                onClick={addRow}
+                className="text-sm flex items-center gap-1 text-blue-600">
+                <Plus size={14} /> Add
               </button>
             </div>
 
-            {/* One card per product row */}
-            {rows.map((row, idx) => (
-              <div key={row.rowKey} style={s.productRow}>
-                {/* Row number circle */}
-                <div style={s.rowNum}>{idx + 1}</div>
+            {rows.map((row) => {
+              const isBuffalo = row.product_name
+                ?.toLowerCase()
+                .includes("buffalo");
 
-                <div style={s.rowFields}>
-                  {/* Product dropdown */}
+              return (
+                <div
+                  key={row.rowKey}
+                  className="bg-white rounded-xl p-4 shadow-sm space-y-3">
+                  {/* Product */}
                   <select
-                    style={s.select}
+                    className="w-full border rounded-lg p-2"
                     value={row.product_id}
                     onChange={(e) =>
                       handleProductChange(row.rowKey, e.target.value)
                     }>
-                    <option value="">Select product…</option>
+                    <option value="">Select product</option>
                     {products.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} — ₹{p.unit_price}/{p.unit}
+                        {p.name} ₹{p.unit_price}/{p.unit}
                       </option>
                     ))}
                   </select>
 
-                  {/* Quantity + line total shown only after product picked */}
-                  {row.product_id && (
-                    <div style={s.qtyRow}>
-                      <input
-                        type="number"
-                        step="0.5"
-                        min="0.5"
-                        placeholder={`Qty (${row.unit})`}
-                        style={{ ...s.input, flex: 1 }}
-                        value={row.quantity}
-                        onChange={(e) =>
-                          handleQuantityChange(row.rowKey, e.target.value)
-                        }
-                      />
-                      {Number(row.quantity) > 0 && (
-                        <div style={s.lineTotal}>
-                          <span style={s.lineTotalLabel}>
-                            @ ₹{row.unit_price}
-                          </span>
-                          <span style={s.lineTotalAmt}>
-                            ₹
-                            {(isBuffaloMilk(row.product_name)
-                              ? Number(row.quantity)
-                              : Number(row.quantity) * row.unit_price
-                            ).toLocaleString("en-IN", {
-                              minimumFractionDigits: 2,
-                            })}
-                          </span>
-                        </div>
-                      )}
+                  {/* Stepper */}
+                  <div className="flex items-center justify-between bg-gray-100 rounded-full px-3 py-2">
+                    <button
+                      onClick={() =>
+                        handleQuantityChange(
+                          row.rowKey,
+                          String(
+                            Math.max(
+                              0,
+                              Number(row.quantity) - (isBuffalo ? 10 : 0.5),
+                            ),
+                          ),
+                        )
+                      }>
+                      -
+                    </button>
+
+                    <div className="font-semibold">
+                      {row.quantity || 0} {row.unit}
                     </div>
+
+                    <button
+                      onClick={() =>
+                        handleQuantityChange(
+                          row.rowKey,
+                          String(
+                            Number(row.quantity || 0) + (isBuffalo ? 10 : 0.5),
+                          ),
+                        )
+                      }>
+                      +
+                    </button>
+                  </div>
+
+                  {/* Subtotal */}
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal</span>
+
+                    <span className="font-semibold">
+                      ₹
+                      {(isBuffalo
+                        ? Number(row.quantity || 0)
+                        : Number(row.quantity || 0) * row.unit_price
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* Remove */}
+                  {rows.length > 1 && (
+                    <button
+                      onClick={() => removeRow(row.rowKey)}
+                      className="text-red-500 text-xs flex items-center gap-1">
+                      <Trash2 size={14} /> Remove
+                    </button>
                   )}
                 </div>
-
-                {/* Remove button — only when more than 1 row */}
-                {rows.length > 1 && (
-                  <button
-                    style={s.removeBtn}
-                    onClick={() => removeRow(row.rowKey)}
-                    type="button">
-                    <Trash2 size={15} />
-                  </button>
-                )}
-              </div>
-            ))}
-
-            {/* Grand total — same style as your original totalPreview */}
-            {grandTotal > 0 && (
-              <div style={s.totalPreview}>
-                <span style={s.totalLbl}>
-                  Grand Total ({validRows.length}{" "}
-                  {validRows.length === 1 ? "item" : "items"})
-                </span>
-                <span style={s.totalAmt}>
-                  ₹
-                  {grandTotal.toLocaleString("en-IN", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-            )}
-
-            {/* Save button — same style as your original */}
-            <button
-              type="button"
-              disabled={isPending}
-              style={s.btn}
-              onClick={handleSave}>
-              {isPending
-                ? "Saving…"
-                : `Save ${validRows.length > 0 ? validRows.length : ""} ${
-                    validRows.length === 1 ? "Entry" : "Entries"
-                  }`}
-            </button>
+              );
+            })}
           </div>
-        </main>
+
+          {/* Summary */}
+          {grandTotal > 0 && (
+            <div className="bg-blue-50 rounded-xl p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Items Total</span>
+                <span>₹{grandTotal.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <span>Delivery Fee</span>
+                <span>₹0.00</span>
+              </div>
+
+              <div className="text-2xl font-bold mt-2">
+                ₹{grandTotal.toFixed(2)}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sticky Button */}
+        <div className="p-4 bg-white border-t">
+          <button
+            onClick={handleSave}
+            disabled={isPending}
+            className="w-full bg-blue-600 text-white py-3 rounded-full font-semibold">
+            {isPending ? "Saving..." : "Save Entry"}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
-
-// ── Styles — your originals kept exactly + new ones appended ──
-const s: Record<string, React.CSSProperties> = {
-  // your original styles — untouched
-  shell: {
-    minHeight: "100vh",
-    background: "#f0f0f0",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  phone: {
-    width: "100%",
-    maxWidth: 430,
-    minHeight: "100vh",
-    background: "#f7f8fa",
-    display: "flex",
-    flexDirection: "column",
-    fontFamily: "'DM Sans','Nunito',sans-serif",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "14px 18px",
-    background: "#fff",
-    borderBottom: "1px solid #eee",
-  },
-  back: {
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    color: "#1a1a1a",
-    padding: 4,
-  },
-  title: { fontSize: 16, fontWeight: 700, color: "#1a1a1a" },
-  logo: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    background: "#1a7a4a",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  body: { flex: 1, padding: "20px 16px" },
-  errBox: {
-    background: "#fff0f0",
-    border: "1px solid #ffc5c5",
-    borderRadius: 10,
-    padding: "10px 14px",
-    color: "#c0392b",
-    fontSize: 13,
-    marginBottom: 16,
-  },
-  form: { display: "flex", flexDirection: "column", gap: 12 },
-  label: { fontSize: 12, fontWeight: 700, color: "#444", marginBottom: -6 },
-  input: {
-    border: "1.5px solid #e0e0e0",
-    borderRadius: 10,
-    padding: "12px 14px",
-    fontSize: 14,
-    outline: "none",
-    fontFamily: "inherit",
-    background: "#fff",
-    color: "#1a1a1a",
-  },
-  select: {
-    border: "1.5px solid #e0e0e0",
-    borderRadius: 10,
-    padding: "12px 14px",
-    fontSize: 14,
-    outline: "none",
-    fontFamily: "inherit",
-    background: "#fff",
-    color: "#1a1a1a",
-    width: "100%",
-  },
-  totalPreview: {
-    background: "#e6f4ed",
-    borderRadius: 12,
-    padding: "14px 16px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  totalLbl: { fontSize: 13, fontWeight: 600, color: "#1a7a4a" },
-  totalAmt: { fontSize: 20, fontWeight: 800, color: "#1a7a4a" },
-  btn: {
-    background: "linear-gradient(135deg,#1a7a4a,#25a366)",
-    color: "#fff",
-    border: "none",
-    borderRadius: 12,
-    padding: "15px 0",
-    fontSize: 15,
-    fontWeight: 700,
-    cursor: "pointer",
-    marginTop: 8,
-    boxShadow: "0 4px 12px rgba(26,122,74,0.25)",
-  },
-
-  // new styles — match your existing look
-  rowsHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: -4,
-  },
-  addRowBtn: {
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    background: "#e6f4ed",
-    color: "#1a7a4a",
-    border: "none",
-    borderRadius: 8,
-    padding: "6px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  productRow: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: 8,
-    background: "#fff",
-    border: "1.5px solid #e0e0e0",
-    borderRadius: 12,
-    padding: "12px 10px",
-  },
-  rowNum: {
-    width: 22,
-    height: 22,
-    borderRadius: "50%",
-    background: "#1a7a4a",
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: 800,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    marginTop: 12,
-  },
-  rowFields: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  qtyRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-  },
-  lineTotal: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-end",
-    flexShrink: 0,
-  },
-  lineTotalLabel: { fontSize: 10, color: "#999" },
-  lineTotalAmt: { fontSize: 14, fontWeight: 800, color: "#1a7a4a" },
-  removeBtn: {
-    background: "#fff0f0",
-    border: "none",
-    borderRadius: 8,
-    padding: 7,
-    cursor: "pointer",
-    color: "#c0392b",
-    display: "flex",
-    alignItems: "center",
-    flexShrink: 0,
-    marginTop: 10,
-  },
-};

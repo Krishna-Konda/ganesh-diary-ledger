@@ -2,106 +2,122 @@
 
 import { useActionState } from "react";
 import { signupAction } from "@/actions/authActions";
-import { Milk, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
 export default function SignupView() {
   const [state, formAction, isPending] = useActionState(signupAction, null);
 
+  // ✅ SUCCESS SCREEN (same logic, new UI)
   if (state?.success) {
     return (
-      <div style={s.shell}>
-        <div style={s.card}>
-          <div style={s.successBox}>
-            <CheckCircle2
-              size={48}
-              color="#1a7a4a"
-              style={{ margin: "0 auto 16px", display: "block" }}
-            />
-            <p style={s.successTitle}>Request Submitted!</p>
-            <p style={s.successDesc}>{state.success}</p>
-            <Link href="/login" style={s.backBtn}>
-              Back to Login
-            </Link>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-6">
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-10 max-w-md w-full text-center">
+          <div className="text-green-600 text-5xl mb-4">✔</div>
+          <h2 className="text-2xl font-bold mb-2">Request Submitted</h2>
+          <p className="text-gray-500 mb-6">{state.success}</p>
+
+          <Link
+            href="/login"
+            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-full font-semibold">
+            Back to Login
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={s.shell}>
-      <div style={s.card}>
-        <div style={s.logoRow}>
-          <div style={s.logoBox}>
-            <Milk size={24} color="#fff" />
-          </div>
-          <div>
-            <p style={s.brand}>Ganesh Dairy</p>
-            <p style={s.sub}>New customer registration</p>
-          </div>
+    <div className="min-h-screen bg-[#fbf9f5] flex flex-col items-center justify-center px-6 py-10">
+      {/* Card */}
+      <div className="w-full max-w-md bg-white/70 backdrop-blur-xl rounded-3xl shadow-xl p-8 border border-white/40">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-extrabold text-blue-700">
+            Ganesh Dairy
+          </h1>
+          <p className="text-xs text-gray-500 tracking-wide">
+            CUSTOMER REGISTRATION
+          </p>
         </div>
 
-        <h1 style={s.title}>Create Account</h1>
-        <p style={s.desc}>
-          Fill in your details. Admin will approve your account.
+        <h2 className="text-xl font-bold text-center mb-2">Create Account</h2>
+        <p className="text-center text-gray-500 text-sm mb-6">
+          Get started in seconds with our fresh delivery service.
         </p>
 
-        {state?.error && <div style={s.errorBox}>{state.error}</div>}
+        {state?.error && (
+          <div className="bg-red-100 text-red-600 px-4 py-2 rounded-xl mb-4 text-sm">
+            {state.error}
+          </div>
+        )}
 
-        <form action={formAction} style={s.form}>
-          <label style={s.label}>Full Name *</label>
-          <input
-            name="full_name"
-            type="text"
-            placeholder="Ravi Kumar"
-            required
-            style={s.input}
-          />
+        <form action={formAction} className="space-y-5">
+          {/* PERSONAL INFO */}
+          <div>
+            <p className="text-xs font-bold text-gray-400 mb-2">
+              PERSONAL INFO
+            </p>
 
-          <label style={s.label}>Email *</label>
-          <input
-            name="email"
-            type="email"
-            placeholder="ravi@example.com"
-            required
-            style={s.input}
-          />
+            <input
+              name="full_name"
+              placeholder="Full Name"
+              required
+              className="w-full h-12 px-4 rounded-full bg-gray-100 focus:ring-2 focus:ring-blue-200 outline-none"
+            />
 
-          <label style={s.label}>Phone</label>
-          <input
-            name="phone"
-            type="tel"
-            placeholder="9876543210"
-            style={s.input}
-          />
+            <input
+              name="phone"
+              placeholder="+91 00000 00000"
+              className="w-full h-12 px-4 rounded-full bg-gray-100 mt-3 focus:ring-2 focus:ring-blue-200 outline-none"
+            />
+          </div>
 
-          <label style={s.label}>Address</label>
-          <input
-            name="address"
-            type="text"
-            placeholder="House No, Street, Area"
-            style={s.input}
-          />
+          {/* ACCOUNT INFO */}
+          <div>
+            <p className="text-xs font-bold text-gray-400 mb-2">ACCOUNT INFO</p>
 
-          <label style={s.label}>Password *</label>
-          <input
-            name="password"
-            type="password"
-            placeholder="Min 6 characters"
-            required
-            minLength={6}
-            style={s.input}
-          />
+            <input
+              name="email"
+              type="email"
+              placeholder="name@example.com"
+              required
+              className="w-full h-12 px-4 rounded-full bg-gray-100 focus:ring-2 focus:ring-blue-200 outline-none"
+            />
 
-          <button type="submit" disabled={isPending} style={s.btn}>
-            {isPending ? "Submitting…" : "Request Account"}
+            <input
+              name="password"
+              type="password"
+              placeholder="Password"
+              required
+              minLength={6}
+              className="w-full h-12 px-4 rounded-full bg-gray-100 mt-3 focus:ring-2 focus:ring-blue-200 outline-none"
+            />
+          </div>
+
+          {/* OPTIONAL */}
+          <div>
+            <p className="text-xs font-bold text-gray-400 mb-2">OPTIONAL</p>
+
+            <input
+              name="address"
+              placeholder="Street name, Apartment, City..."
+              className="w-full h-12 px-4 rounded-full bg-gray-100 focus:ring-2 focus:ring-blue-200 outline-none"
+            />
+          </div>
+
+          {/* BUTTON */}
+          <button
+            type="submit"
+            disabled={isPending}
+            className="w-full h-12 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition">
+            {isPending ? "Submitting..." : "Request Account"}
           </button>
         </form>
 
-        <p style={s.footer}>
+        {/* FOOTER */}
+        <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{" "}
-          <Link href="/login" style={s.link}>
+          <Link href="/login" className="text-blue-600 font-semibold">
             Sign in
           </Link>
         </p>
@@ -109,93 +125,3 @@ export default function SignupView() {
     </div>
   );
 }
-
-const s: Record<string, React.CSSProperties> = {
-  shell: {
-    minHeight: "100vh",
-    background: "#f0f4f0",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  card: {
-    width: "100%",
-    maxWidth: 400,
-    background: "#fff",
-    borderRadius: 20,
-    padding: 32,
-    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-  },
-  logoRow: { display: "flex", alignItems: "center", gap: 12, marginBottom: 24 },
-  logoBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    background: "#1a7a4a",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  brand: { fontSize: 16, fontWeight: 800, color: "#1a1a1a" },
-  sub: { fontSize: 11, color: "#999", marginTop: 1 },
-  title: { fontSize: 20, fontWeight: 800, color: "#1a1a1a", marginBottom: 4 },
-  desc: { fontSize: 12, color: "#888", marginBottom: 20 },
-  errorBox: {
-    background: "#fff0f0",
-    border: "1px solid #ffc5c5",
-    borderRadius: 10,
-    padding: "10px 14px",
-    color: "#c0392b",
-    fontSize: 13,
-    marginBottom: 14,
-  },
-  form: { display: "flex", flexDirection: "column", gap: 10 },
-  label: { fontSize: 12, fontWeight: 700, color: "#444", marginBottom: -4 },
-  input: {
-    border: "1.5px solid #e0e0e0",
-    borderRadius: 10,
-    padding: "11px 14px",
-    fontSize: 14,
-    outline: "none",
-    fontFamily: "inherit",
-    color: "#1a1a1a",
-  },
-  btn: {
-    background: "linear-gradient(135deg,#1a7a4a,#25a366)",
-    color: "#fff",
-    border: "none",
-    borderRadius: 12,
-    padding: "14px 0",
-    fontSize: 15,
-    fontWeight: 700,
-    cursor: "pointer",
-    marginTop: 4,
-  },
-  footer: { textAlign: "center", fontSize: 13, color: "#888", marginTop: 18 },
-  link: { color: "#1a7a4a", fontWeight: 700, textDecoration: "none" },
-  successBox: { textAlign: "center", padding: "20px 0" },
-  successTitle: {
-    fontSize: 20,
-    fontWeight: 800,
-    color: "#1a1a1a",
-    marginBottom: 8,
-  },
-  successDesc: {
-    fontSize: 13,
-    color: "#666",
-    marginBottom: 24,
-    lineHeight: 1.5,
-  },
-  backBtn: {
-    display: "inline-block",
-    background: "#1a7a4a",
-    color: "#fff",
-    padding: "12px 32px",
-    borderRadius: 12,
-    fontWeight: 700,
-    textDecoration: "none",
-    fontSize: 14,
-  },
-};
