@@ -1,0 +1,50 @@
+name: Supabase Weekly Backup + Keep Alive
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Every Monday at 9AM UTC
+  workflow_dispatch: # Also lets you run it manually anytime
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Export all tables to CSV
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          mkdir -p backups
+
+          # Get all table names
+          TABLES=$(psql "$DATABASE_URL" -t -c "SELECT tablename FROM pg_tables WHERE schemaname='public';")
+
+          # Export each table to CSV
+          for TABLE in $TABLES; do
+            echo "Exporting $TABLE..."
+            psql "$DATABASE_URL" -c "\COPY $TABLE TO 'backups/${TABLE}_$(date +%Y-%m-%d).csv' CSV HEADER"
+          done
+
+      - name: Commit and push CSV backups
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add backups/
+          git diff --staged --quiet || git commit -m "Auto backup - $(date +%Y-%m-%d)"
+          git push
+
+      - name: Ping Supabase to prevent pause
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          curl -s "$SUPABASE_URL/rest/v1/" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY"
+          echo "Pinged Supabase successfully!"
