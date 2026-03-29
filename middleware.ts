@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // ── Public paths — always allow ────────────────────────────
-  const publicPaths = ["/login", "/signup", "/"];
+  const publicPaths = ["/login", "/signup"];
   if (publicPaths.some((p) => pathname.startsWith(p))) {
     // If already logged in, redirect to their dashboard
     if (user) {
@@ -45,6 +45,17 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(dest, request.url));
     }
     return response;
+  }
+  // ROOT route
+  if (pathname === "/") {
+    if (!user) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    const isAdmin = user.app_metadata?.role === "admin";
+    const dest = isAdmin ? "/admin/dashboards" : "/customer/dashboard";
+
+    return NextResponse.redirect(new URL(dest, request.url));
   }
 
   // ── Not logged in → login ───────────────────────────────────
