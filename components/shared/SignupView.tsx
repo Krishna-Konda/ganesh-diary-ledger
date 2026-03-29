@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { signupAction } from "@/actions/authActions";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function SignupView() {
   const [state, formAction, isPending] = useActionState(signupAction, null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // ✅ SUCCESS SCREEN (same logic, new UI)
   if (state?.success) {
@@ -84,14 +86,22 @@ export default function SignupView() {
               className="w-full h-12 px-4 rounded-full bg-gray-100 focus:ring-2 focus:ring-blue-200 outline-none"
             />
 
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              required
-              minLength={6}
-              className="w-full h-12 px-4 rounded-full bg-gray-100 mt-3 focus:ring-2 focus:ring-blue-200 outline-none"
-            />
+            <div className="relative mt-3">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                required
+                minLength={6}
+                className="w-full h-12 px-4 pr-12 rounded-full bg-gray-100 focus:ring-2 focus:ring-blue-200 outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           {/* OPTIONAL */}

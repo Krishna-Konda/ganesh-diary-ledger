@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { loginAction } from "@/actions/authActions";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginView() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-6">
@@ -45,13 +47,22 @@ export default function LoginView() {
             <label className="text-sm font-semibold text-gray-600">
               Password
             </label>
-            <input
-              name="password"
-              type="password"
-              required
-              placeholder="••••••••"
-              className="w-full mt-2 h-12 px-4 rounded-full bg-white/80 border border-gray-200 focus:ring-4 focus:ring-blue-200 outline-none transition"
-            />
+            <div className="relative mt-2">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                placeholder="••••••••"
+                className="w-full h-12 px-4 pr-12 rounded-full bg-white/80 border border-gray-200 focus:ring-4 focus:ring-blue-200 outline-none transition"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           {/* Button */}
