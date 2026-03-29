@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // ── Public paths — always allow ────────────────────────────
-  const publicPaths = ["/login", "/signup"];
+  const publicPaths = ["/login", "/signup", "/"];
   if (publicPaths.some((p) => pathname.startsWith(p))) {
     // If already logged in, redirect to their dashboard
     if (user) {
