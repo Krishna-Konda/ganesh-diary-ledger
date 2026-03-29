@@ -99,6 +99,23 @@ export async function updateProductPriceAction(
   return { error: "" };
 }
 
+// ── Delete product — admin only ────────────────────────────
+export async function deleteProductAction(
+  _prevState: { error: string } | null,
+  formData: FormData,
+): Promise<{ error: string }> {
+  const supabase = await createClient();
+
+  const id = formData.get("id") as string;
+  if (!id) return { error: "Invalid product id" };
+
+  const { error } = await supabase.from("products").delete().eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/products");
+  return { error: "" };
+}
+
 // ── Create product — admin only ────────────────────────────
 export async function createProductAction(
   _prevState: { error: string } | null,

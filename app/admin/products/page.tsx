@@ -6,8 +6,9 @@ import { getAllProducts } from "@/lib/models/productModel";
 import {
   createProductAction,
   updateProductPriceAction,
+  deleteProductAction,
 } from "@/actions/profileAction";
-import { Plus, Edit2, Check } from "lucide-react";
+import { Plus, Edit2, Check, Trash2 } from "lucide-react";
 import type { Product } from "@/types/database";
 
 export default function ProductsPage() {
@@ -30,6 +31,10 @@ export default function ProductsPage() {
   );
   const [createState, createAction, isCreatePending] = useActionState(
     createProductAction,
+    null,
+  );
+  const [deleteState, deleteAction, isDeletePending] = useActionState(
+    deleteProductAction,
     null,
   );
 
@@ -63,6 +68,18 @@ export default function ProductsPage() {
     setNewProductPrice("");
     getAllProducts().then(setProducts);
   }, [createState]);
+
+  useEffect(() => {
+    if (deleteState === null) return;
+
+    if (deleteState.error) {
+      setAddError(deleteState.error);
+      return;
+    }
+
+    setAddError("");
+    getAllProducts().then(setProducts);
+  }, [deleteState]);
 
   return (
     <div className="bg-gray-200 min-h-screen flex justify-center">
@@ -189,26 +206,39 @@ export default function ProductsPage() {
 
                 {/* PRICE / EDIT */}
                 {editingId === p.id ? (
-                  <form action={formAction} className="flex items-center gap-2">
-                    <input type="hidden" name="id" value={p.id} />
-                    <input
-                      name="unit_price"
-                      type="number"
-                      step="0.5"
-                      value={editPrice}
-                      onChange={(e) => setEditPrice(e.target.value)}
-                      className="w-20 border border-blue-500 rounded-lg px-2 py-1 text-center font-semibold outline-none"
-                      autoFocus
-                    />
-                    <button
-                      type="submit"
-                      disabled={isPending}
-                      className="bg-green-500 text-white p-2 rounded-lg">
-                      <Check className="w-4 h-4" />
-                    </button>
-                  </form>
+                  <div className="flex items-center gap-2">
+                    <form
+                      action={formAction}
+                      className="flex items-center gap-2">
+                      <input type="hidden" name="id" value={p.id} />
+                      <input
+                        name="unit_price"
+                        type="number"
+                        step="0.5"
+                        value={editPrice}
+                        onChange={(e) => setEditPrice(e.target.value)}
+                        className="w-20 border border-blue-500 rounded-lg px-2 py-1 text-center font-semibold outline-none"
+                        autoFocus
+                      />
+                      <button
+                        type="submit"
+                        disabled={isPending}
+                        className="bg-green-500 text-white p-2 rounded-lg">
+                        <Check className="w-4 h-4" />
+                      </button>
+                    </form>
+                    <form action={deleteAction}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <button
+                        type="submit"
+                        disabled={isDeletePending}
+                        className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    </form>
+                  </div>
                 ) : (
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <span className="text-lg font-bold text-gray-900">
                       ₹{p.unit_price}
                     </span>
@@ -220,6 +250,15 @@ export default function ProductsPage() {
                       className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
                       <Edit2 className="w-4 h-4 text-blue-700" />
                     </button>
+                    <form action={deleteAction}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <button
+                        type="submit"
+                        disabled={isDeletePending}
+                        className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
+                    </form>
                   </div>
                 )}
               </div>
