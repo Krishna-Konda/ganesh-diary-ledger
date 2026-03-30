@@ -91,7 +91,9 @@ export default function AdminDashboardView({
             <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
               <Milk size={18} className="text-white" />
             </div>
-            <h1 className="text-lg font-bold text-blue-700">Ganesh Dairy</h1>
+            <h1 className="text-lg font-bold text-blue-700">
+              Shree Ganesh Dairy
+            </h1>
           </div>
 
           <div className="w-10 h-10 rounded-full bg-gray-300" />
