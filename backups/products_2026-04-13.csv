@@ -1,0 +1,6 @@
+id,name,category,unit_price,unit,created_at
+23a5e0de-35b6-4cbf-baac-5800bc4e4bb0,Bread White,bread,40.00,piece,2026-03-07 16:04:32.495719+00
+dc0d144b-0533-41a6-b27d-cbb20f1f0649,Maggi Noodles,maggi,12.00,piece,2026-03-07 16:04:32.495719+00
+ef7c93dd-f471-4d17-8623-9ad9b04ea286,Biscuits,biscuits,30.00,pack,2026-03-07 16:04:32.495719+00
+0dace224-f32f-4c18-9b91-44fa9624b366,Buffalo Milk,milk,80.00,liter,2026-03-11 13:48:54.761321+00
+555b4466-651d-418f-b065-6ecafa0999da,Butter,butter,150.00,kg,2026-03-07 16:04:32.495719+00
