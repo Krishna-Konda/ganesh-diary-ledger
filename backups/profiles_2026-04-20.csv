@@ -1,0 +1,4 @@
+id,email,full_name,phone,role,address,created_at,is_approved
+1e67ad58-a260-4e4a-9f5d-dd5f40412201,kondakrishna70@gmail.com,Krishna Konda,,admin,,2026-03-07 18:37:05.118628+00,t
+7f217add-4341-4929-bc14-d8f68920f4fb,rajukonda520455@gmail.com,Raju konda ,9730341064,customer,,2026-03-29 15:23:11.645959+00,t
+ec0b8528-4918-49f1-a3b5-4e477999a395,shuklaramniva11@gmail.com,Manish,9766996711,customer,,2026-03-30 16:58:34.095373+00,t
